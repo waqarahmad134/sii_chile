@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/**/*.rb": {
+      "runtime": "vercel-ruby@3.2.0"
+    }
+  },
+  "routes": [
+    { "src": "^/$", "dest": "/api/index.rb" },
+    { "src": "^/consulta$", "dest": "/api/consulta.rb" }
+  ]
+}

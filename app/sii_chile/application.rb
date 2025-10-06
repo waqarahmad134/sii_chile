@@ -8,9 +8,16 @@ require 'newrelic_rpm'
 module SIIChile
   class Application < Sinatra::Base
 
-    set :cache, Dalli::Client.new(ENV["MEMCACHIER_SERVERS"].split(","),
-                    {:username => ENV["MEMCACHIER_USERNAME"],
-                     :password => ENV["MEMCACHIER_PASSWORD"]})
+    memcachier_servers = ENV["MEMCACHIER_SERVERS"]
+    if memcachier_servers && !memcachier_servers.empty?
+      set :cache, Dalli::Client.new(
+        memcachier_servers.split(","),
+        {:username => ENV["MEMCACHIER_USERNAME"],
+         :password => ENV["MEMCACHIER_PASSWORD"]}
+      )
+    else
+      set :cache, nil
+    end
     use Rack::JSONP
 
     get '/' do
@@ -26,13 +33,13 @@ module SIIChile
         Time.now.strftime('%Y%m%d')
       ].join('/')
 
-      @resultado = settings.cache.get(@cache_key)
+      @resultado = settings.cache && settings.cache.get(@cache_key)
       cached = true
 
       unless @resultado
         cached = false
         @resultado = @consulta.resultado
-        settings.cache.set(@cache_key, @resultado)
+        settings.cache && settings.cache.set(@cache_key, @resultado)
       end
 
       [
